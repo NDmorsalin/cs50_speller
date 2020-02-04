@@ -15,8 +15,7 @@ typedef struct node
 node;
 
 // Number of buckets in hash table
-const int cNum = 27;
-const unsigned int N = cNum + cNum * cNum; //27 + 27 * 27
+const unsigned int N = 26;
 
 // Hash table
 node *table[N];
@@ -24,32 +23,15 @@ int count = 0;
 
 
 //convert char to index, a=0, b=1 etc...
-int convert_char(const char C){
-    int output = (int)(tolower(C));
-
-    return output != 39 ? output - 97 : 27;
-}
-int char_index(const char* word)
+int char_index(char C)
 {
-
-    int index, first = convert_char(word[0]);
-    if(strlen(word) == 1){
-        index = first;
-    }
-    else
-    {
-        int second = convert_char(word[1]);
-        index = cNum + first * cNum + second;
-    }
-
-    return index;
-    //return (int)(tolower(C)) - 97;
+    return (int)(tolower(C)) - 97;
 }
 
 // Returns true if word is in dictionary else false
 bool check(const char *word)
 {
-    int I = char_index(word);
+    int I = char_index(word[0]);
 
     struct node* _this = table[I];  // Initialize _this
     while ( _this != NULL)
@@ -67,40 +49,34 @@ bool check(const char *word)
 // Hashes word to a number
 unsigned int hash(const char *word)
 {
-    /* allocate node */
-    /*struct node* tmp = (struct node*) malloc(sizeof(struct node));
-    if (tmp == NULL) {
-        printf("Out of memory\n");
-        return 0;
-    }
-    strcpy(tmp->word, word);*/
-
-    int I = char_index(word);
+    int I = char_index(word[0]);
     if(table[I] == NULL)
     {
-        table[I] = (struct node*)malloc(sizeof(struct node));
+        table[I] = malloc(sizeof(struct node));
         if (table[I] == NULL) {
             printf("Out of memory\n");
             return 0;
         }
         strcpy(table[I]->word, word);
+        table[I]->next = NULL;
     }
     else
     {
-        //link the old list off the new node
-        struct node* tmp = (struct node*) malloc(sizeof(struct node));
-        if (tmp == NULL) {
+        // allocate node
+        struct node* new_node = malloc(sizeof(struct node));
+        if (new_node == NULL) {
             printf("Out of memory\n");
             return 0;
         }
-        strcpy(tmp->word, word);
-
-        if(table[I]->next != NULL)
-        {
-            tmp->next = table[I]->next;
+        strcpy(new_node->word, word);
+        if(table[I]->next == NULL){
+            new_node->next = NULL;
         }
-        table[I]->next = tmp;
-
+        else{
+            //link the old list off the new node
+            new_node->next = table[I]->next;
+        }
+        table[I]->next = new_node;
     }
     return 1;
 }
@@ -144,13 +120,15 @@ bool unload(void)
 {
     for(int I = 0; I < N; I++)
     {
-        struct node* _this = table[I];
-        while (_this != NULL)
+        struct node* _this = table[I];  // Initialize _this
+        while ( _this != NULL)
         {
             struct node* tmp = _this;
             _this = _this->next;
+
             free(tmp);
         }
+        free(_this);
     }
     return true;
 }
